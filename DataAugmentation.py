@@ -3,6 +3,9 @@ import numpy as np
 import os.path
 import copy
 import pathlib
+from tqdm import tqdm
+import time
+import math
 
 
 class DataAugmentation(object):
@@ -145,7 +148,7 @@ class DataAugmentation(object):
         return blur_img
 
     def random_erasing(self,
-                       probability=0.5,
+                       probability=1,
                        sl=0.02,
                        sh=0.4,
                        r1=0.3,
@@ -164,27 +167,23 @@ class DataAugmentation(object):
         """
         if np.random.uniform(0, 1) > probability:
             return self.image
-        else:
-            random_erased_img = self.image.copy()
-            for _ in range(100):
-                area = random_erased_img.shape[1] * random_erased_img.shape[0]
-                target_area = np.random.uniform(sl, sh) * area
-                aspect_ratio = np.random.uniform(r1, 1 / r1)
-                h = int(round(np.sqrt(target_area * aspect_ratio)))
-                w = int(round(np.sqrt(target_area / aspect_ratio)))
-                if np.random.randint(2) == 0:
-                    x1 = np.random.randint(random_erased_img.shape[1])
-                    y1 = np.random.randint(random_erased_img.shape[0] - h)
-                else:
-                    x1 = np.random.randint(random_erased_img.shape[1] - w)
-                    y1 = np.random.randint(random_erased_img.shape[0])
-                if x1 + w <= random_erased_img.shape[
-                        1] and y1 + h <= random_erased_img.shape[0]:
-                    random_erased_img[y1:y1 + h, x1:x1 + w, 0] = mean[0]
-                    random_erased_img[y1:y1 + h, x1:x1 + w, 1] = mean[1]
-                    random_erased_img[y1:y1 + h, x1:x1 + w, 2] = mean[2]
-                    return random_erased_img
-            return random_erased_img
+
+        random_erased_img = self.image.copy()
+        for attempt in range(100):
+            area = self.image.shape[0] * self.image.shape[1]
+            target_area = np.random.uniform(sl, sh) * area
+            aspect_ratio = np.random.uniform(r1, 1 / r1)
+
+            h = int(round(math.sqrt(target_area * aspect_ratio)))
+            w = int(round(math.sqrt(target_area / aspect_ratio)))
+
+            if w < self.image.shape[1] and h < self.image.shape[0]:
+                x1 = np.random.randint(0, self.image.shape[0] - h)
+                y1 = np.random.randint(0, self.image.shape[1] - w)
+
+                random_erased_img[x1:x1 + h, y1:y1 + w, :] = mean
+
+                return random_erased_img
 
 
 class FolderDataAugmentation(object):
@@ -204,7 +203,7 @@ class FolderDataAugmentation(object):
         self.path = pathlib.Path(__file__).resolve()
         self.project_folder = self.path.parent
         self.folder_path = self.project_folder / folder_path
-        self.folder_name = folder_path.name
+        self.folder_name = folder_path
 
         # check if is folder
         if not self.folder_path.is_dir():
@@ -221,7 +220,7 @@ class FolderDataAugmentation(object):
         Args:
             folder_name (_type_): _description_
         """
-        new_folder = self.folder_path.parent / folder_name
+        new_folder = self.project_folder / folder_name
         if not new_folder.exists():
             new_folder.mkdir()
         return new_folder
@@ -229,18 +228,19 @@ class FolderDataAugmentation(object):
     def folder_pro(self,
                    gauss_noise=False,
                    sp_noise=False,
-                   darker= False,
+                   darker=False,
                    brighter=False,
                    blur=False,
                    rotate=False,
+                   flip=False,
                    random_erasing=False,
-                   noise_ratio=0, 
-                   dark_ratio = 0,
-                   bright_ratio = 0,
-                   blur_size = 0,
-                   rotate_angle = 0,
-                   rotate_num = 0,
-                   random_erasing_probability = 0):
+                   noise_ratio=0,
+                   dark_ratio=0,
+                   bright_ratio=0,
+                   blur_size=0,
+                   rotate_angle=0,
+                   rotate_num=0,
+                   random_erasing_probability=0):
         """_summary_
 
         Args:
@@ -272,6 +272,8 @@ class FolderDataAugmentation(object):
             pro_type_name += "_blur"
         if rotate:
             pro_type_name += "_rotate"
+        if flip:
+            pro_type_name += "_flip"
         if random_erasing:
             pro_type_name += "_random_erasing"
 
@@ -280,65 +282,113 @@ class FolderDataAugmentation(object):
             new_sub_folder = new_folder / sub_folder.name
             if not new_sub_folder.exists():
                 new_sub_folder.mkdir()
-            
+
         for sub_folder in self.sub_folder_list:
             img_list = [
                 img for img in sub_folder.iterdir() if img.is_file() and (
                     img.suffix == ".jpg" or img.suffix == ".png")
             ]
-            for img in img_list:
+            for img in tqdm(img_list):
                 # copy raw images to new folder
                 raw_img = cv2.imread(str(img))
-                new_img_path = new_folder / sub_folder.name / img.stem + "_raw" + img.suffix
+                new_img_path = new_folder / sub_folder.name / (
+                    img.stem + "_raw" + img.suffix)
                 cv2.imwrite(str(new_img_path), raw_img)
 
                 # add pro
-                img_aug = DataAugmentation(raw_img)
+                img_aug = DataAugmentation(str(img))
                 if gauss_noise:
                     gauss_img = img_aug.add_gaussian_noise(noise_ratio)
-                    new_img_path = new_folder / sub_folder.name / img.stem + "_gauss" + img.suffix
+                    new_img_path = new_folder / sub_folder.name / (
+                        img.stem + "_gauss" + img.suffix)
                     cv2.imwrite(str(new_img_path), gauss_img)
                 if sp_noise:
                     sp_img = img_aug.add_salt_and_pepper(noise_ratio)
-                    new_img_path = new_folder / sub_folder.name / img.stem + "_sp" + img.suffix
+                    new_img_path = new_folder / sub_folder.name / (
+                        img.stem + "_sp" + img.suffix)
                     cv2.imwrite(str(new_img_path), sp_img)
                 if darker:
                     dark_img = img_aug.darker(dark_ratio)
-                    new_img_path = new_folder / sub_folder.name / img.stem + "_dark" + img.suffix
+                    new_img_path = new_folder / sub_folder.name / (
+                        img.stem + "_dark" + img.suffix)
                     cv2.imwrite(str(new_img_path), dark_img)
                 if brighter:
                     bright_img = img_aug.brighter(bright_ratio)
-                    new_img_path = new_folder / sub_folder.name / img.stem + "_bright" + img.suffix
+                    new_img_path = new_folder / sub_folder.name / (
+                        img.stem + "_bright" + img.suffix)
                     cv2.imwrite(str(new_img_path), bright_img)
                 if blur:
                     blur_img = img_aug.blur(blur_size)
-                    new_img = new_folder / sub_folder.name / img.stem + "_blur" + img.suffix
+                    new_img = new_folder / sub_folder.name / (
+                        img.stem + "_blur" + img.suffix)
                     cv2.imwrite(str(new_img), blur_img)
+                if flip:
+                    flip_img = img_aug.flip()
+                    new_img = new_folder / sub_folder.name / (
+                        img.stem + "_flip" + img.suffix)
+                    cv2.imwrite(str(new_img), flip_img)
                 if rotate:
                     if rotate_angle == 0:
                         for _ in range(rotate_num):
                             each_angle = np.random.randint(1, 360)
                             rotate_img = img_aug.rotate(each_angle)
-                            new_img_path = new_folder / sub_folder.name / img.stem + "_rotate" + each_angle + img.suffix
+                            new_img_path = new_folder / sub_folder.name / (
+                                img.stem + "_rotate" + str(each_angle) +
+                                img.suffix)
                             cv2.imwrite(str(new_img_path), rotate_img)
                     else:
                         rotate_img = img_aug.rotate(rotate_angle)
-                        new_img_path = new_folder / sub_folder.name / img.stem + "_rotate" + rotate_angle + img.suffix
+                        new_img_path = new_folder / sub_folder.name / (
+                            img.stem + "_rotate" + str(rotate_angle) +
+                            img.suffix)
                         cv2.imwrite(str(new_img_path), rotate_img)
                 if random_erasing:
-                    random_erasing_img = img_aug.random_erasing(random_erasing_probability)
-                    new_img_path = new_folder / sub_folder.name / img.stem + "_random_erasing" + img.suffix
+                    random_erasing_img = img_aug.random_erasing(
+                        random_erasing_probability)
+                    new_img_path = new_folder / sub_folder.name / (
+                        img.stem + "_random_erasing" + img.suffix)
                     cv2.imwrite(str(new_img_path), random_erasing_img)
 
 
 if __name__ == "__main__":
-    test_folder = FolderDataAugmentation("test_folder/train")
-    
-    test_folder.folder_pro(gauss_noise=True, noise_ratio=0.3)
-    test_folder.folder_pro(sp_noise=True, noise_ratio=0.3)
-    test_folder.folder_pro(darker=True, dark_ratio=0.3)
-    test_folder.folder_pro(brighter=True, bright_ratio=3.0)
-    test_folder.folder_pro(blur=True, blur_size=3)
-    test_folder.folder_pro(rotate=True, rotate_angle=30)
-    test_folder.folder_pro(random_erasing=True, random_erasing_probability=0.8)
-    
+
+    test_folder = FolderDataAugmentation("data/train")
+
+    start_time = time.time()
+
+    # test_folder.folder_pro(gauss_noise=True, noise_ratio=0.2)
+    # guass_end_time = time.time()
+
+    # test_folder.folder_pro(sp_noise=True, noise_ratio=0.2)
+    # sp_end_time = time.time()
+
+    # test_folder.folder_pro(blur=True, blur_size=5)
+    # blur_end_time = time.time()
+
+    # test_folder.folder_pro(rotate=True, rotate_angle=30)
+    # rotate_end_time = time.time()
+
+    # test_folder.folder_pro(random_erasing=True, random_erasing_probability=0.8)
+    # random_erasing_end_time = time.time()
+
+    test_folder.folder_pro(gauss_noise=True,
+                           sp_noise=True,
+                           noise_ratio=0.2,
+                           darker=False,
+                           dark_ratio=0.3,
+                           brighter=False,
+                           bright_ratio=1.5,
+                           blur=True,
+                           blur_size=5,
+                           rotate=True,
+                           rotate_angle=0,
+                           rotate_num=5,
+                           flip=True,
+                           random_erasing=True,
+                           random_erasing_probability=1)
+
+    end_time = time.time()
+
+    all_time = end_time - start_time
+
+    print("all_time: ", all_time)
