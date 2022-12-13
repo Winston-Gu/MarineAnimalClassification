@@ -102,7 +102,7 @@ def get_pretrained_model(model_name, out_classes):
                                            num_classes=out_classes)
         return resnet50_model
     elif model_name == 'vit':
-        vit_model = timm.create_model('vit_large_patch16_224',
+        vit_model = timm.create_model('vit_base_patch32_224',
                                       pretrained=True,
                                       num_classes=out_classes)
         return vit_model

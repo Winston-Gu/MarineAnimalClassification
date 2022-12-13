@@ -3,6 +3,6 @@ from copy import deepcopy
 
 config = deepcopy(base_config)
 
-config['data'] = 'pro'
-config['model'] = 'resnet50'
-config['optimizer'] = 'Adam'
+config['data'] = 'balanced'
+config['model'] = 'mynet'
+config['transform'] = True

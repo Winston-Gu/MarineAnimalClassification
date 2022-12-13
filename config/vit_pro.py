@@ -5,3 +5,4 @@ config = deepcopy(base_config)
 
 config['data'] = 'pro'
 config['model'] = 'vit'
+config['optimizer'] = 'Adam'

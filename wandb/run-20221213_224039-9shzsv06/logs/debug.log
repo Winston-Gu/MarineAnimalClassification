@@ -22,3 +22,4 @@ config: {'epochs': 5, 'lr': 0.001, 'batch_size': 64, 'data': 'inbalanced', 'mode
 2022-12-13 22:40:42,728 INFO    MainThread:1030518 [wandb_run.py:_redirect():1909] Wrapping output streams.
 2022-12-13 22:40:42,728 INFO    MainThread:1030518 [wandb_run.py:_redirect():1931] Redirects installed.
 2022-12-13 22:40:42,729 INFO    MainThread:1030518 [wandb_init.py:init():765] run started, returning control to user process
+2022-12-13 22:42:16,111 WARNING MsgRouterThr:1030518 [router.py:message_loop():77] message_loop has been closed
