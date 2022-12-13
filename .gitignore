@@ -2,4 +2,5 @@ data/
 data_inbalanced/
 raw_data/
 test_folder/
+saved_model/
 .vscode/
