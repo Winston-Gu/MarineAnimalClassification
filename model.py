@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import timm
 import numpy as np
 from abc import abstractmethod
 
@@ -26,25 +27,91 @@ class BaseModel(nn.Module):
         return super().__str__() + '\nTrainable parameters: {}'.format(params)
 
 
-class ShuShuNet(BaseModel):
+class MyNet(BaseModel):
 
-    def __init__(self, out_classes):
-        super(ShuShuNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, 5)
-        self.conv2 = nn.Conv2d(32, 64, 5)
-        self.conv3 = nn.Conv2d(64, 128, 3)
-        self.conv4 = nn.Conv2d(128, 256, 5)
+    def __init__(
+        self,
+        out_classes,
+        BatchNorm=False,
+    ):
+        super(MyNet, self).__init__()
 
-        self.fc1 = nn.Linear(256, out_classes)
-
-        self.pool = nn.MaxPool2d(2, 2)
+        if BatchNorm:
+            self.features = nn.Sequential(
+                nn.Conv2d(in_channels=3,
+                          out_channels=5,
+                          kernel_size=3,
+                          padding=1), nn.BatchNorm2d(5), nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels=5,
+                          out_channels=64,
+                          kernel_size=3,
+                          padding=1), nn.MaxPool2d(2, 2), nn.BatchNorm2d(64),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels=64,
+                          out_channels=128,
+                          kernel_size=3,
+                          padding=1), nn.BatchNorm2d(128),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels=128,
+                          out_channels=256,
+                          kernel_size=3,
+                          padding=1), nn.MaxPool2d(2, 2), nn.BatchNorm2d(256),
+                nn.ReLU(inplace=True))
+        else:
+            self.features = nn.Sequential(
+                nn.Conv2d(in_channels=3,
+                          out_channels=5,
+                          kernel_size=3,
+                          padding=1), nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels=5,
+                          out_channels=64,
+                          kernel_size=3,
+                          padding=1), nn.MaxPool2d(2,
+                                                   2), nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels=64,
+                          out_channels=128,
+                          kernel_size=3,
+                          padding=1), nn.ReLU(inplace=True),
+                nn.Conv2d(in_channels=128,
+                          out_channels=256,
+                          kernel_size=3,
+                          padding=1), nn.MaxPool2d(2, 2),
+                nn.ReLU(inplace=True))
+        self.classifier = nn.Sequential(nn.Linear(256, 1024),
+                                        nn.ReLU(inplace=True),
+                                        nn.Linear(1024, out_classes))
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = self.pool(F.relu(self.conv3(x)))
-        x = self.pool(F.relu(self.conv4(x)))
+        x = self.features(x)
         bs, _, _, _ = x.shape
         x = F.adaptive_avg_pool2d(x, 1).reshape(bs, -1)
-        x = self.fc1(x)
+        x = self.classifier(x)
         return x
+
+
+def get_pretrained_model(model_name, out_classes):
+    """
+    Get a pretrained model
+    :param model_name: Name of the model
+    :param out_classes: Number of output classes
+    :return: Model
+    """
+    if model_name == 'resnet50':
+        resnet50_model = timm.create_model('resnet50d',
+                                           pretrained=True,
+                                           num_classes=out_classes)
+        return resnet50_model
+    elif model_name == 'vit':
+        vit_model = timm.create_model('vit_large_patch16_224',
+                                      pretrained=True,
+                                      num_classes=out_classes)
+        return vit_model
+    else:
+        raise ValueError('Model not found: {}'.format(model_name))
+
+
+if __name__ == '__main__':
+    model = get_pretrained_model('resnet50', 19)
+    print(model)
+    model = get_pretrained_model('vit', 19)
+    print(model)

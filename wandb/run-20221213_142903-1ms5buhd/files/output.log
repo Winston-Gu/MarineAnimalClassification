@@ -1,0 +1,14 @@
+Computation device: cuda
+MyNet(
+  (conv1): Conv2d(3, 32, kernel_size=(5, 5), stride=(1, 1))
+  (conv2): Conv2d(32, 64, kernel_size=(5, 5), stride=(1, 1))
+  (conv3): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1))
+  (conv4): Conv2d(128, 256, kernel_size=(5, 5), stride=(1, 1))
+  (fc1): Linear(in_features=256, out_features=19, bias=True)
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+)
+Trainable parameters: 951891
+951,891 total parameters.
+951,891 training parameters.
+[INFO]: Epoch 1 of 100
+Training

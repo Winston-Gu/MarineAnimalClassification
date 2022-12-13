@@ -3,4 +3,5 @@ data_inbalanced/
 raw_data/
 test_folder/
 saved_model/
+pre_trained_models/
 .vscode/

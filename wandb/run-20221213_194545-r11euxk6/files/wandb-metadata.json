@@ -1,0 +1,225 @@
+{
+    "os": "Linux-5.15.0-56-generic-x86_64-with-glibc2.35",
+    "python": "3.10.8",
+    "heartbeatAt": "2022-12-13T11:45:46.685213",
+    "startedAt": "2022-12-13T11:45:45.356345",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/stu4/AIProject2/train.py",
+    "codePath": "train.py",
+    "git": {
+        "remote": "git@github.com:Winston-Gu/MarineAnimalClassification.git",
+        "commit": "a69afd1d837d36ed04bd79176f88a9931fbc15f4"
+    },
+    "email": "winston@501",
+    "root": "/home/stu4/AIProject2",
+    "host": "epoch",
+    "username": "stu4",
+    "executable": "/home/stu4/anaconda3/envs/AIProject2/bin/python",
+    "cpu_count": 18,
+    "cpu_count_logical": 36,
+    "cpu_freq": {
+        "current": 2969.3850555555555,
+        "min": 1200.0,
+        "max": 4633.333333333333
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4800.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4700.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 2771.193,
+            "min": 1200.0,
+            "max": 4700.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4800.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4800.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4700.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4700.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4600.0
+        },
+        {
+            "current": 3000.0,
+            "min": 1200.0,
+            "max": 4800.0
+        }
+    ],
+    "disk": {
+        "total": 914.7823104858398,
+        "used": 330.59016036987305
+    },
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3090",
+            "memory_total": 25769803776
+        }
+    ],
+    "memory": {
+        "total": 125.49135208129883
+    }
+}

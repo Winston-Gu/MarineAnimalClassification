@@ -1,0 +1,27 @@
+Computation device: cuda
+2,773,407 total parameters.
+2,773,407 training parameters.
+[INFO]: Epoch 1 of 10
+Training
+
+
+
+
+
+
+
+ 93%|█████████████████████████████████████████████████████████████████████████▋     | 137/147 [00:15<00:01,  9.59it/s]
+100%|███████████████████████████████████████████████████████████████████████████████| 147/147 [00:16<00:00,  8.84it/s]
+100%|█████████████████████████████████████████████████████████████████████████████████| 19/19 [00:00<00:00, 19.31it/s]
+Traceback (most recent call last):
+  File "/home/stu4/AIProject2/train.py", line 228, in <module>
+    save_model(config, epoch, model, optimizer)
+  File "/home/stu4/AIProject2/train.py", line 175, in save_model
+    torch.save(
+  File "/home/stu4/anaconda3/envs/AIProject2/lib/python3.10/site-packages/torch/serialization.py", line 422, in save
+    with _open_zipfile_writer(f) as opened_zipfile:
+  File "/home/stu4/anaconda3/envs/AIProject2/lib/python3.10/site-packages/torch/serialization.py", line 309, in _open_zipfile_writer
+    return container(name_or_buffer)
+  File "/home/stu4/anaconda3/envs/AIProject2/lib/python3.10/site-packages/torch/serialization.py", line 287, in __init__
+    super(_open_zipfile_writer_file, self).__init__(torch._C.PyTorchFileWriter(str(name)))
+RuntimeError: Parent directory save_folder does not exist.
