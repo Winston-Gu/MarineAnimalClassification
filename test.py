@@ -89,4 +89,4 @@ if __name__ == '__main__':
     grayscale_cam = grayscale_cam[0, :]
     cam_img = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=True)
     imgplot = plt.imshow(cam_img)
-    imgplot.savefig(f'gradcam_result/{load_name}_{config.img_path}.png')
+    imgplot.figure.savefig(f'gradcam_result/{load_name}_{config.img_path}.png')
