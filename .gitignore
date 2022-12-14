@@ -9,4 +9,5 @@ raw_data.zip
 data.zip
 data_inbalanced.zip
 .vscode/
+__pycache__/
 gram/
