@@ -62,8 +62,8 @@ if __name__ == '__main__':
         _, preds = torch.max(outputs.data, 1)
         y_true.extend(labels.tolist())
         y_pred.extend(preds.tolist())
-    print(classification_report(y_true, y_pred))
-    confusion = confusion_matrix(y_true, y_pred, labels=marine_classes)
+    print(classification_report(y_true, y_pred, labels=marine_classes))
+    confusion = confusion_matrix(y_true, y_pred, display_labels=marine_classes)
     disp = ConfusionMatrixDisplay(confusion_matrix=confusion,
                                   display_labels=marine_classes)
     fig, ax = plt.subplots(figsize=(12, 11))
