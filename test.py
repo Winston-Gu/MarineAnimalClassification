@@ -75,7 +75,7 @@ if __name__ == '__main__':
         values_format="d",  # 显示的数值格式
     )
 
-    plt.show()
+    plt.savefig(f'confusion_matrix/{load_name}.png')
 
     img = Image.open(config.image).resize((224, 224))
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     plt.imshow(img)
 
     # 将图片转为tensor
-    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0)
+    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0).to(device)
 
     target_layers = [model.features[-1]]
 

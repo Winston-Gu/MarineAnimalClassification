@@ -7,4 +7,5 @@ pre_trained_models/
 wandb/
 data.zip
 data_inbalanced.zip
+confusion_matrix/
 .vscode/
