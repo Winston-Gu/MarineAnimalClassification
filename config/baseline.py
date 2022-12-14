@@ -1,5 +1,5 @@
 config = dict(
-    epochs=5,
+    epochs=60,
     lr=0.001,
     batch_size=64,
     data=None,
