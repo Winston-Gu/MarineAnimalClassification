@@ -14,7 +14,6 @@ import torch
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config-name', default='mynet_inbalanced')
 parser.add_argument('-n', '--checkpoint_num', default='59')
-parser.add_argument('-i', '--img_path', default='data/test/Corals/0.jpg')
 args = parser.parse_args()
 
 config_module = importlib.import_module(f'config.{args.config_name}')

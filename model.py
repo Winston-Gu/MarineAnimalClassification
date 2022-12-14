@@ -111,7 +111,5 @@ def get_pretrained_model(model_name, out_classes):
 
 
 if __name__ == '__main__':
-    model = get_pretrained_model('resnet50', 19)
-    print(model)
-    model = get_pretrained_model('vit', 19)
+    model = MyNet(19, BatchNorm=True)
     print(model)
