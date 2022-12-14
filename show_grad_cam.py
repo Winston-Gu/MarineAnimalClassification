@@ -1,89 +1,79 @@
-import os
-import PIL
+import argparse
+import importlib
+from easydict import EasyDict
+import tqdm
+from PIL import Image
 import numpy as np
+from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from pytorch_grad_cam.utils.image import show_cam_on_image
+
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+
+from utils import get_model, get_test_data_loader
+
+from matplotlib import pyplot as plt
+
 import torch
-import torch.nn.functional as F
-import torchvision.models as models
-from torchvision.utils import make_grid, save_image
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--config-name', default='mynet_inbalanced')
+parser.add_argument('-n', '--checkpoint_num', default='59')
+parser.add_argument('-i', '--img_path', default='data/test/Corals/0.jpg')
+args = parser.parse_args()
 
-from grad_cam import GradCAM, GradCAMpp, visualize_cam, Normalize
+config_module = importlib.import_module(f'config.{args.config_name}')
+config = config_module.config
+config.update(vars(args))
+config = EasyDict(config)
 
-img_dir = 'data/train/Corals'
-img_name = '0.jpg'
-img_path = os.path.join(img_dir, img_name)
+load_name = f'{config.model}'
+load_name += f'_{config.data}'
+load_name += f'_{config.epochs}'
+load_name += f'_{config.lr}'
+load_name += f'_{config.batch_size}'
+load_name += f'_optim_{config.optimizer}'
+load_name += f'_BN_{config.BatchNorm}'
+load_name += f'_TF_{config.transform}'
 
-pil_img = PIL.Image.open(img_path)
+device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
+if __name__ == '__main__':
+    model = get_model(config).to(device)
+    checkpoint = torch.load(
+        f'saved_model/{load_name}/{config.checkpoint_num}.pth')
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    test_loader = get_test_data_loader(config)
+    y_true = []
+    y_pred = []
+    marine_classes = [
+        'Corals', 'Crabs', 'Dolphin', 'Eel', 'Jelly Fish', 'Lobster',
+        'Nudibranchs', 'Octopus', 'Penguin', 'Puffers', 'Sea Rays',
+        'Sea Urchins', 'Seahorse', 'Seal', 'Sharks', 'Squid', 'Starfish',
+        'Turtle_Tortoise', 'Whale'
+    ]
+    for i, data in tqdm.tqdm(enumerate(test_loader), total=len(test_loader)):
+        image, labels = data
+        image = image.to(device)
+        labels = labels.to(device)
+        outputs = model(image)
+        _, preds = torch.max(outputs.data, 1)
+        y_true.extend(labels.tolist())
+        y_pred.extend(preds.tolist())
 
-normalizer = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-torch_img = torch.from_numpy(np.asarray(pil_img)).permute(2, 0, 1).unsqueeze(0).float().div(255).cuda()
-torch_img = F.upsample(torch_img, size=(224, 224), mode='bilinear', align_corners=False)
-normed_torch_img = normalizer(torch_img)
+    img = Image.open(config.img_path).resize((224, 224))
+    rgb_img = np.float32(img) / 255
+    img_tensor = torch.from_numpy(rgb_img).permute(2, 0,
+                                                   1).unsqueeze(0).to(device)
 
-
-
-
-
-alexnet = models.alexnet(pretrained=True)
-alexnet.eval(), alexnet.cuda();
-
-vgg = models.vgg16(pretrained=True)
-vgg.eval(), vgg.cuda();
-
-resnet = models.resnet101(pretrained=True)
-resnet.eval(), resnet.cuda();
-
-densenet = models.densenet161(pretrained=True)
-densenet.eval(), densenet.cuda();
-
-squeezenet = models.squeezenet1_1(pretrained=True)
-squeezenet.eval(), squeezenet.cuda();
-
-
-cam_dict = dict()
-
-alexnet_model_dict = dict(type='alexnet', arch=alexnet, layer_name='features_11', input_size=(224, 224))
-alexnet_gradcam = GradCAM(alexnet_model_dict, True)
-alexnet_gradcampp = GradCAMpp(alexnet_model_dict, True)
-cam_dict['alexnet'] = [alexnet_gradcam, alexnet_gradcampp]
-
-vgg_model_dict = dict(type='vgg', arch=vgg, layer_name='features_29', input_size=(224, 224))
-vgg_gradcam = GradCAM(vgg_model_dict, True)
-vgg_gradcampp = GradCAMpp(vgg_model_dict, True)
-cam_dict['vgg'] = [vgg_gradcam, vgg_gradcampp]
-
-resnet_model_dict = dict(type='resnet', arch=resnet, layer_name='layer4', input_size=(224, 224))
-resnet_gradcam = GradCAM(resnet_model_dict, True)
-resnet_gradcampp = GradCAMpp(resnet_model_dict, True)
-cam_dict['resnet'] = [resnet_gradcam, resnet_gradcampp]
-
-densenet_model_dict = dict(type='densenet', arch=densenet, layer_name='features_norm5', input_size=(224, 224))
-densenet_gradcam = GradCAM(densenet_model_dict, True)
-densenet_gradcampp = GradCAMpp(densenet_model_dict, True)
-cam_dict['densenet'] = [densenet_gradcam, densenet_gradcampp]
-
-squeezenet_model_dict = dict(type='squeezenet', arch=squeezenet, layer_name='features_12_expand3x3_activation', input_size=(224, 224))
-squeezenet_gradcam = GradCAM(squeezenet_model_dict, True)
-squeezenet_gradcampp = GradCAMpp(squeezenet_model_dict, True)
-cam_dict['squeezenet'] = [squeezenet_gradcam, squeezenet_gradcampp]
-
-images = []
-for gradcam, gradcam_pp in cam_dict.values():
-    mask, _ = gradcam(normed_torch_img)
-    heatmap, result = visualize_cam(mask, torch_img)
-
-    mask_pp, _ = gradcam_pp(normed_torch_img)
-    heatmap_pp, result_pp = visualize_cam(mask_pp, torch_img)
-    
-    images.append(torch.stack([torch_img.squeeze().cpu(), heatmap, heatmap_pp, result, result_pp], 0))
-    
-images = make_grid(torch.cat(images, 0), nrow=5)
-
-output_dir = 'gradcam_result'
-os.makedirs(output_dir, exist_ok=True)
-output_name = img_name
-output_path = os.path.join(output_dir, output_name)
-
-save_image(images, output_path)
-PIL.Image.open(output_path)
+    target_layers = [model.features[-1]]
+    # 选取合适的类激活图，但是ScoreCAM和AblationCAM需要batch_size
+    cam = GradCAM(model=model, target_layers=target_layers)
+    targets = [ClassifierOutputTarget(10)]
+    # 上方preds需要设定，比如ImageNet有1000类，这里可以设为200
+    grayscale_cam = cam(input_tensor=img_tensor, targets=targets)
+    grayscale_cam = grayscale_cam[0, :]
+    cam_img = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=True)
+    imgplot = plt.imshow(cam_img)
+    imgplot.figure.savefig(f'gradcam_result/{load_name}.png')

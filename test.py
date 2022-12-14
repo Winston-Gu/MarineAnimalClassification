@@ -2,11 +2,6 @@ import argparse
 import importlib
 from easydict import EasyDict
 import tqdm
-from PIL import Image
-import numpy as np
-from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-from pytorch_grad_cam.utils.image import show_cam_on_image
 
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
@@ -75,18 +70,3 @@ if __name__ == '__main__':
     )
 
     plt.savefig(f'confusion_matrix/{load_name}.png')
-
-    img = Image.open(config.img_path).resize((224, 224))
-    rgb_img = np.float32(img) / 255
-    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0).to(device)
-
-    target_layers = [model.features[-1]]
-    # 选取合适的类激活图，但是ScoreCAM和AblationCAM需要batch_size
-    cam = GradCAM(model=model, target_layers=target_layers)
-    targets = [ClassifierOutputTarget(10)]
-    # 上方preds需要设定，比如ImageNet有1000类，这里可以设为200
-    grayscale_cam = cam(input_tensor=img_tensor, targets=targets)
-    grayscale_cam = grayscale_cam[0, :]
-    cam_img = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=True)
-    imgplot = plt.imshow(cam_img)
-    imgplot.figure.savefig(f'gradcam_result/{load_name}_{config.img_path}.png')
