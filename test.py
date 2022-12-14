@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     img = Image.open(config.img_path).resize((224, 224))
     rgb_img = np.float32(img) / 255
-    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0)
+    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0).to(device)
 
     target_layers = [model.features[-1]]
     # 选取合适的类激活图，但是ScoreCAM和AblationCAM需要batch_size
