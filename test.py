@@ -63,7 +63,7 @@ if __name__ == '__main__':
         y_true.extend(labels.tolist())
         y_pred.extend(preds.tolist())
     print(classification_report(y_true, y_pred, target_names=marine_classes))
-    confusion = confusion_matrix(y_true, y_pred, labels=marine_classes)
+    confusion = confusion_matrix(y_true, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=confusion,
                                   display_labels=marine_classes)
     fig, ax = plt.subplots(figsize=(12, 11))
