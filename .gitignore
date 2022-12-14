@@ -8,4 +8,6 @@ wandb/
 data.zip
 data_inbalanced.zip
 confusion_matrix/
+gradcam_result/
 .vscode/
+gram/

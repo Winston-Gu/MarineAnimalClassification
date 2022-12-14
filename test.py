@@ -2,6 +2,11 @@ import argparse
 import importlib
 from easydict import EasyDict
 import tqdm
+from PIL import Image
+import numpy as np
+from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from pytorch_grad_cam.utils.image import show_cam_on_image
 
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
@@ -10,17 +15,11 @@ from utils import get_model, get_test_data_loader
 from matplotlib import pyplot as plt
 
 import torch
-from PIL import Image
-import numpy as np
-
-from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-from pytorch_grad_cam.utils.image import show_cam_on_image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config-name', default='mynet_inbalanced')
 parser.add_argument('-n', '--checkpoint_num', default='59')
-parser.add_argument('-i', '--image', default='data/test/Corals/0.jpg')
+parser.add_argument('-i', '--img_path', default='data/test/Corals/')
 args = parser.parse_args()
 
 config_module = importlib.import_module(f'config.{args.config_name}')
@@ -68,30 +67,26 @@ if __name__ == '__main__':
                                   display_labels=marine_classes)
     fig, ax = plt.subplots(figsize=(12, 11))
     disp.plot(
-        include_values=True,  # 混淆矩阵每个单元格上显示具体数值
+        include_values=True,
         cmap="Blues",
-        ax=ax,  # 同上
-        xticks_rotation="vertical",  # 同上
-        values_format="d",  # 显示的数值格式
+        ax=ax,
+        xticks_rotation="vertical",
+        values_format="d",
     )
 
     plt.savefig(f'confusion_matrix/{load_name}.png')
 
-    img = Image.open(config.image).resize((224, 224))
-
+    img = Image.open(config.img_path).resize((224, 224))
     rgb_img = np.float32(img) / 255
-    plt.imshow(img)
-
-    # 将图片转为tensor
-    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0).to(device)
+    img_tensor = torch.from_numpy(rgb_img).permute(2, 0, 1).unsqueeze(0)
 
     target_layers = [model.features[-1]]
-
+    # 选取合适的类激活图，但是ScoreCAM和AblationCAM需要batch_size
     cam = GradCAM(model=model, target_layers=target_layers)
-    targets = [ClassifierOutputTarget(19)]
+    targets = [ClassifierOutputTarget(10)]
     # 上方preds需要设定，比如ImageNet有1000类，这里可以设为200
     grayscale_cam = cam(input_tensor=img_tensor, targets=targets)
     grayscale_cam = grayscale_cam[0, :]
     cam_img = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=True)
-    print(type(cam_img))
-    Image.fromarray(cam_img)
+    imgplot = plt.imshow(cam_img)
+    imgplot.savefig(f'gradcam_result/{load_name}_{config.img_path}.png')
