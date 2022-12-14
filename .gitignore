@@ -5,6 +5,7 @@ test_folder/
 saved_model/
 pre_trained_models/
 wandb/
+raw_data.zip
 data.zip
 data_inbalanced.zip
 .vscode/
